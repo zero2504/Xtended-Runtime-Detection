@@ -1,0 +1,104 @@
+# -------------------------------------------------------------------
+# PowerShell invocations and common PowerShell abuse patterns
+# -------------------------------------------------------------------
+(?i)powershell\.exe                     # direct call to powershell.exe
+(?i)powershell\s+                       # any “powershell ” invocation
+(?i)invoke-webrequest                   # Invoke-WebRequest usage
+(?i)invoke-restmethod                   # Invoke-RestMethod usage
+(?i)invoke-expression                   # Invoke-Expression usage
+(?i)-encodedcommand\b                   # -EncodedCommand parameter (Base64 payload)
+(?i)downloadfile\(\s*['"]               # DownloadFile(“http://…”)
+(?i)new-object\s+system\.net\.webclient # creating WebClient object
+(?i)start-process\b                     # Start-Process usage
+(?i)downloadstring                      # WebClient.DownloadString
+(?i)downloaddata                        # WebClient.DownloadData
+
+# -------------------------------------------------------------------
+# Scripting hosts and living-off-the-land binaries (LOLbins)
+# -------------------------------------------------------------------
+(?i)cmd\.exe                            # Windows CMD shell
+(?i)mshta\.exe                          # HTML Application host
+(?i)wscript\.exe                        # Windows Script Host (WSH)
+(?i)cscript\.exe                        # Windows Script Host CLI
+(?i)regsvr32\.exe                       # Regsvr32 LOADER abuse
+(?i)certutil\.exe                       # CertUtil download/encode misuse
+(?i)rundll32\.exe                       # Rundll32 arbitrary code execution
+
+# -------------------------------------------------------------------
+# APT techniques, Click-jacking, reflection & inline code
+# -------------------------------------------------------------------
+(?i)set-clipboard\b                     # explicit clipboard setting
+(?i)get-clipboard\b                     # explicit clipboard retrieval
+(?i)add-type\s                          # Add-Type inline C# compile
+(?i)invoke-item\b                       # Invoke-Item to run files
+(?i)system\.reflection\.assembly        # .NET reflection loading
+(?i)system\.text\.encoding              # .NET text encoding usage
+(?i)out-file\b                          # writing output to file
+
+# -------------------------------------------------------------------
+# Base64-encoded strings (long sequences)
+# -------------------------------------------------------------------
+([A-Za-z0-9+/]{50,}={0,2})              # matches long Base64 blobs (≥50 chars)
+
+# -------------------------------------------------------------------
+# Optional extras (add your own abuse patterns here)
+# -------------------------------------------------------------------
+(?i)ftp\.exe                            # FTP command-line
+(?i)bitsadmin\.exe                      # BITS admin abuse
+
+
+# =====================================================================
+#  PowerShell abuse  – full paths, arguments, in-memory payload
+# =====================================================================
+(?i)\bpowershell(\.exe)?\b                      # any powershell invocation
+(?i)\b(pwsh|posh)\b                             # aliases / PSCore
+(?i)\b(-e|-encoded(?:command)?|-eNcOdEdCoMMaNd)\b
+(?i)\b(?:invoke-|iwr\b|irm\b|iex\b|nEW-oBJeCt\s+System\.Net\.) # common short-forms
+(?i)\bdownload(file|string|data)\s*\(          # .DownloadXXX(
+(?i)\bstart-process\s+["']?[^-\s].*\.ps1\b     # Start-Process running script
+(?i)\b(Add-Type|System\.Reflection\.Assembly)\b
+(?i)\b(FromBase64String|Base64ToString)\s*\(    # on-the-fly decode
+
+# =====================================================================
+#  CMD / BAT / LOLBins  – when pasted verbatim
+# =====================================================================
+(?i)\b(cmd|cmd\.exe|/c\s+start)\b
+(?i)\b(mshta|wscript|cscript|regsvr32|rundll32|msiexec|certutil|bitsadmin|schtasks)\.exe\b
+(?i)\bwmic\s+process\s+call\b
+(?i)\brun-dll32\.exe\b                          # typosquat often pasted
+
+# =====================================================================
+#  Shell-one-liners (PowerShell or Bash via WSL / Git-bash)
+# =====================================================================
+(?i)sleep\s+\d{1,3}\s*;\s*exit                  # typical C-2 beacon test
+(?i)(curl|wget)\s+[^|\r\n]+?\s*\|\s*(sh|bash|powershell) # “| bash”
+
+# =====================================================================
+#  Clipboard ownership / LOL-macro tricks
+# =====================================================================
+(?i)\b(Get|Set)-Clipboard\b
+(?i)\bSendKeys\s*\(\s*".*{ENTER}                # VBA SendKeys inline run
+(?i)\bpython\s+-c\s+["']import\s+base64         # inline python payload
+
+# =====================================================================
+#  Credentials, API-tokens, ssh-keys  (pasted by mistake)
+# =====================================================================
+AKIA[0-9A-Z]{16}                                # AWS Access-Key-ID
+(?:ASIA|ACCA)[0-9A-Z]{16}                       # AWS temp keys
+(?i)-----BEGIN (?:RSA|OPENSSH|ED25519|DSA) PRIVATE KEY-----
+(?i)password\s*=\s*['"][^'"\r\n]{8,}['"]        # hard-coded password
+
+# =====================================================================
+#  Large Base-64 or hex blobs  – possible shellcode / DLL / exe
+# =====================================================================
+(?:[A-Za-z0-9+/]{40,}={0,2})                   # long Base-64
+(?:0x[0-9A-Fa-f]{400,})                         # very long hex literal
+
+# =====================================================================
+#  RDP / MSTSC clipboard abuse (server-side relative paths)
+# =====================================================================
+(?i)\\tsclient\\[A-Z]\$\\[^\\\r\n]{3,}          # typical tsclient share path
+
+# =====================================================================
+#  Optional – add your own below
+# =====================================================================
