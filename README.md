@@ -19,6 +19,10 @@ A lightweight Windows tray application that monitors your clipboard for suspicio
 - **Single-instance guard & robust error handling**  
   Prevents multiple instances via a named mutex and surfaces initialization failures with a MessageBox.
 
+### Support development
+
+If you'd like to support this project, feel free to donate:  
+👉 [**Buy Me a Coffee**](https://buymeacoffee.com/zero2504)
 
 ##  How It Works
 
