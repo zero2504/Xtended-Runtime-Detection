@@ -10,7 +10,7 @@
 //static constexpr wchar_t LOGS_PATH[] = L"C:\\";
 
 // URL to your donation page
-static constexpr wchar_t DONATE_URL[] = L"https://example.com/donate";
+static constexpr wchar_t DONATE_URL[] = L"https://buymeacoffee.com/zero2504";
 
 // Tray icon identifiers
 static constexpr UINT TRAY_ICON_ID = 2001;
@@ -93,7 +93,7 @@ static void ShowAbout(HWND owner)
 {
     MessageBoxW(
         owner,
-        L"xTended Runtime Detection\n"
+        L"Xtended Runtime Detection\n"
         L"Version 1.0\n\n"
         L"Developers:\n"
         L"  • Ogulcan Ugur\n"
@@ -110,7 +110,7 @@ static std::wstring GetLogFolder()
     std::filesystem::path exePath(modulePath);
     // exakt derselbe Pfad, den XrdLogger anlegt:
     auto logDir = exePath.parent_path()
-        / L"xtended Runtime Detection"
+        / L"Xtended Runtime Detection"
         / L"LogFiles";
     // sicherstellen, dass er existiert
     std::error_code ec;

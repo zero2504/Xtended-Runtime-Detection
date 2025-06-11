@@ -6,7 +6,7 @@
 #include "TrayLogic.h"
 
 // Application-wide constants
-static constexpr std::wstring_view MUTEX_NAME = L"Global\\xTendedRuntimeDetection_Mutex";
+static constexpr std::wstring_view MUTEX_NAME = L"Global\\XtendedRuntimeDetection_Mutex";
 static constexpr std::wstring_view PATTERN_FILE = L"patterns.txt";
 
 // RAII wrapper to manage HANDLE lifetimes safely
