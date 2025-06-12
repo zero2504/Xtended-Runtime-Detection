@@ -42,17 +42,44 @@ ClipboardWatcher* ClipboardWatcher::s_this = nullptr;
 HHOOK             ClipboardWatcher::s_kbHook = nullptr;
 HHOOK             ClipboardWatcher::s_mouseHook = nullptr;
 
+// Topmost-Callback for TaskDialogIndirect
+static HRESULT CALLBACK TopmostCallback(
+    HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, LONG_PTR refData)
+{
+    if (msg == TDN_CREATED) {
+        SetWindowPos(hwnd,
+            HWND_TOPMOST,
+            0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE);
+    }
+    return S_OK;
+}
+
 namespace {
     /**
      * @brief Displays an error task dialog.
      * @param owner Owner window handle (nullptr for no owner).
      * @param message Wide-string message text.
      */
-    void ShowError(HWND owner, const wchar_t* message)
+    void ShowError(HWND /*owner*/, const wchar_t* message)
     {
-        TaskDialog(owner, nullptr, L"Error", message,
-            nullptr, TDCBF_OK_BUTTON, TD_ERROR_ICON, nullptr);
+        TASKDIALOGCONFIG cfg = {};
+        cfg.cbSize = sizeof(cfg);
+        cfg.hwndParent = nullptr;
+        cfg.dwFlags = TDF_ENABLE_HYPERLINKS;
+        cfg.pszWindowTitle = L"Error";
+        cfg.pszMainInstruction = message;
+        cfg.pszMainIcon = MAKEINTRESOURCEW(TD_ERROR_ICON);
+        cfg.pfCallback = TopmostCallback;
+
+        TASKDIALOG_BUTTON btn = { IDOK, L"OK" };
+        cfg.cButtons = 1;
+        cfg.pButtons = &btn;
+        cfg.nDefaultButton = IDOK;
+
+        TaskDialogIndirect(&cfg, nullptr, nullptr, nullptr);
     }
+
 
     /**
      * @brief Prompts a Yes/No dialog.
@@ -62,17 +89,34 @@ namespace {
      * @param footer Optional footer text.
      * @return IDYES or IDNO.
      */
-    int AskYesNo(HWND owner,
+    int AskYesNo(HWND /*owner*/,
         const wchar_t* title,
         const wchar_t* text,
-        const wchar_t* footer = nullptr)
+        const wchar_t* footer /*= nullptr*/)
     {
         int result = 0;
-        TaskDialog(owner, nullptr, title, text, footer,
-            TDCBF_YES_BUTTON | TDCBF_NO_BUTTON,
-            TD_WARNING_ICON, &result);
+        TASKDIALOGCONFIG cfg = {};
+        cfg.cbSize = sizeof(cfg);
+        cfg.hwndParent = nullptr;
+        cfg.dwFlags = TDF_ALLOW_DIALOG_CANCELLATION;
+        cfg.pszWindowTitle = title;
+        cfg.pszMainInstruction = text;
+        cfg.pszContent = footer;
+        cfg.pszMainIcon = MAKEINTRESOURCEW(TD_WARNING_ICON);
+        cfg.pfCallback = TopmostCallback;
+
+        TASKDIALOG_BUTTON buttons[] = {
+            { IDYES, L"Yes" },
+            { IDNO,  L"No"  }
+        };
+        cfg.cButtons = _countof(buttons);
+        cfg.pButtons = buttons;
+        cfg.nDefaultButton = IDYES;
+
+        TaskDialogIndirect(&cfg, &result, nullptr, nullptr);
         return result;
     }
+
 
     /**
      * @brief Checks for Ctrl-based copy/paste keys.
@@ -297,6 +341,7 @@ void ClipboardWatcher::OnClipboardUpdate()
     const double kLsbLower = 0.4,                  // LSB anomaly detection thresholds
         kLsbUpper = 0.6;
 
+
     //
     // A) Check for Unicode text
     //
@@ -309,7 +354,7 @@ void ClipboardWatcher::OnClipboardUpdate()
                 // Copy clipboard text into a std::wstring
                 std::wstring content(data);
                 GlobalUnlock(hText);
-
+                _fullContent = content;
                 // If the text contains suspicious patterns, mark it
                 if (ContainsBad(content))
                 {
@@ -471,7 +516,7 @@ void ClipboardWatcher::OnClipboardUpdate()
     int choice = AskYesNo(
         _hWnd,
         L"Security Alert – Extended Runtime Detection",
-        L"Suspicious clipboard content detected.\nDiscard?",
+        L"Suspicious clipboard content detected.\nKeep it?",
         _preview.c_str()
     );
 
@@ -674,7 +719,7 @@ LRESULT CALLBACK ClipboardWatcher::LLKBProc(int code,
 //------------------------------------------------------------------------------
 void ClipboardWatcher::LogFinalPaste(const std::wstring& destApp)
 {
-    _logger.logEvent(_user, _host, _srcApp, destApp, _preview, L"Keep");
+    _logger.logEvent(_user, _host, _srcApp, destApp, _fullContent, L"Keep");
     _holdClipboard = false;
 }
 

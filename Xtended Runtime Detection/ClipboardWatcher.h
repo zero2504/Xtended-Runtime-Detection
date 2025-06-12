@@ -117,6 +117,7 @@ private:
     std::wstring _preview;            ///< Preview of the clipboard content
     std::wstring _user;               ///< Username for logging
     std::wstring _host;               ///< Hostname for logging
+	std::wstring _fullContent;        /// Full content of the clipboard
 
     XrdLogger _logger;                ///< Logger for events
 };
