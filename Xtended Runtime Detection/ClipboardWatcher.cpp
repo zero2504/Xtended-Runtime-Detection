@@ -1,4 +1,4 @@
-/**
+ï»¿/**
  * @file ClipboardWatcher.cpp
  * @brief Implements the ClipboardWatcher class for detecting and handling suspicious clipboard content.
  *
@@ -28,6 +28,7 @@
 #include <commctrl.h>
 #include <fstream>
 #include <sstream>
+#include <locale>
 #include <Shlwapi.h>    // for PathFindExtensionW
 
 #pragma comment(lib, "user32.lib")
@@ -314,7 +315,7 @@ void ClipboardWatcher::OnClipboardUpdate()
                 {
                     // Take a snippet of up to 100 characters for preview
                     snippet = content.substr(0, 100)
-                        + (content.size() > 100 ? L"…" : L"");
+                        + (content.size() > 100 ? L"â€¦" : L"");
                     suspicious = true;
                 }
             }
@@ -359,7 +360,7 @@ void ClipboardWatcher::OnClipboardUpdate()
                     if (ContainsBad(buffer))
                     {
                         snippet = buffer.substr(0, 100)
-                            + (buffer.size() > 100 ? L"…" : L"");
+                            + (buffer.size() > 100 ? L"â€¦" : L"");
                         suspicious = true;
                     }
                 }
@@ -469,7 +470,7 @@ void ClipboardWatcher::OnClipboardUpdate()
     // Ask the user whether to discard the suspicious content
     int choice = AskYesNo(
         _hWnd,
-        L"Security Alert – Extended Runtime Detection",
+        L"Security Alert â€“ Extended Runtime Detection",
         L"Suspicious clipboard content detected.\nDiscard?",
         _preview.c_str()
     );

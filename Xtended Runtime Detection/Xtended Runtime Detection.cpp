@@ -3,11 +3,22 @@
 #include <memory>
 #include <stdexcept>
 #include "ClipboardWatcher.h"
+#include <filesystem>
 #include "TrayLogic.h"
 
 // Application-wide constants
 static constexpr std::wstring_view MUTEX_NAME = L"Global\\XtendedRuntimeDetection_Mutex";
-static constexpr std::wstring_view PATTERN_FILE = L"patterns.txt";
+
+
+//  Helpers
+static std::wstring GetPatternFilePath()
+{
+    // Arbeite im aktuellen Arbeitsverzeichnis
+    std::filesystem::path cwd = std::filesystem::current_path();
+    return (cwd / L"patterns.txt").wstring();
+}
+
+
 
 // RAII wrapper to manage HANDLE lifetimes safely
 struct HandleDeleter {
@@ -43,8 +54,18 @@ int WINAPI wWinMain(
             throw std::runtime_error("Tray icon initialization failed");
         }
 
+        // Determine the absolute path to patterns.txt
+        const std::wstring patternFile = GetPatternFilePath();
+       
+        if (!std::filesystem::exists(patternFile)) {
+            MessageBoxW(nullptr,
+                (L"patterns.txt not found in:\n" + patternFile).c_str(),
+                L"Error", MB_ICONERROR);
+            return EXIT_FAILURE;
+        }
+
         // Start clipboard watcher with specified pattern file
-        ClipboardWatcher watcher(PATTERN_FILE.data());
+        ClipboardWatcher watcher(patternFile);
         if (!watcher.Start(hInstance, trayWindow, trayIconId)) {
             CleanupTray();
             throw std::runtime_error("Failed to start clipboard watcher");
