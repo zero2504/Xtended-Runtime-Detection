@@ -38,7 +38,7 @@ void XrdLogger::ensureInitialized()
         if (!headerStream) {
             throw std::runtime_error("Unable to create log file at " + _logFilePath.string());
         }
-        headerStream << L"==================== XR_D Log File ===================="
+        headerStream << L"==================== XRD Log File ===================="
             << L"\n\n";
     }
 }

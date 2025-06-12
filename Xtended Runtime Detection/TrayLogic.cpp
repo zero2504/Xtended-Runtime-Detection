@@ -97,7 +97,8 @@ static void ShowAbout(HWND owner)
         L"Version 1.0\n\n"
         L"Developers:\n"
         L"  • Ogulcan Ugur\n"
-        L"  • Niklas Messerschmid\n",
+        L"  • Niklas Messerschmid\n"
+        L"  • Noah Jauchmann\n",
         L"About",
         MB_ICONINFORMATION | MB_OK
     );
