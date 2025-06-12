@@ -24,7 +24,9 @@ A lightweight Windows tray application that monitors your clipboard for suspicio
 If you'd like to support this project, feel free to donate:  
 👉 [**Buy Me a Coffee**](https://buymeacoffee.com/zero2504)
 
-Feedback & Contributions
+### Feedback & Contributions
+
+
 Feel free to open issues or pull requests, we're open to suggestions and improvements.
 
 ##  How It Works
